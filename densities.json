@@ -1,0 +1,23 @@
+{
+    "Polypropylene": 0.90,
+    "Polyethylene (LDPE)": 0.92,
+    "Polyethylene (HDPE)": 0.95,
+    "Polystyrene": 1.05,
+    "ABS": 1.04,
+    "PVC": 1.38,
+    "Polyamide (Nylon 6/6)": 1.14,
+    "Polycarbonate": 1.20,
+    "Polyoxymethylene (POM)": 1.41,
+    "Polyethylene Terephthalate (PET)": 1.38,
+    "Polyether Ether Ketone (PEEK)": 1.30,
+    "Polytetrafluoroethylene (PTFE)": 2.20,
+    "Acrylic (PMMA)": 1.18,
+    "Ultra-high-molecular-weight Polyethylene (UHMWPE)": 0.93,
+    "Polyvinylidene Fluoride (PVDF)": 1.78,
+    "Polyurethane": 1.10,
+    "Styrene Acrylonitrile (SAN)": 1.07,
+    "ABS-Jet": 1.02,
+    "Cellulose Acetate": 1.30,
+    "Polyetherimide (PEI)": 1.27,
+    "Polysulfone (PSU)": 1.24
+}

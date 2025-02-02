@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Berechnung: Schneckendurchmesser &amp; Schließkraft</title>
+  <style>
+    /* 
+      Global reset and fonts 
+    */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: linear-gradient(135deg, #1f1f1f 40%, #3b3b3b 100%);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* 
+      Main container to limit width on large screens 
+    */
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    /* 
+      Main heading 
+    */
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #ffffff;
+    }
+    /* 
+      Card styling: for input & result sections 
+    */
+    .card {
+      background-color: #f2f2f2;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      color: #000000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .card h2 {
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      color: #333333;
+    }
+    /* 
+      Form styling 
+    */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: inline-block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: #333333;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      font-size: 1rem;
+      padding: 10px;
+      border: 1px solid #cccccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    /* 
+      Change input border on focus 
+    */
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #3399cc;
+    }
+    /* 
+      Buttons 
+    */
+    .button-row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.3s ease;
+    }
+    .btn-calculate {
+      background-color: #3399cc;
+      color: #fff;
+    }
+    .btn-calculate:hover {
+      background-color: #2887ba;
+      transform: scale(1.02);
+    }
+    .btn-reset {
+      background-color: #cc3333;
+      color: #fff;
+    }
+    .btn-reset:hover {
+      background-color: #b22b2b;
+      transform: scale(1.02);
+    }
+    /* 
+      Results container 
+    */
+    #result {
+      margin-top: 1rem;
+      min-height: 60px;
+      font-size: 1rem;
+      white-space: pre-line;
+      line-height: 1.4;
+      color: #000000; /* default text color for results */
+    }
+    /* 
+      Responsive text scaling 
+    */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .container {
+        margin: 20px auto;
+        padding: 10px;
+      }
+      .card {
+        padding: 15px;
+      }
+      .card h2 {
+        font-size: 1.1rem;
+      }
+      button {
+        font-size: 0.9rem;
+      }
+      .form-group label,
+      .form-group input,
+      .form-group select {
+        font-size: 0.9rem;
+      }
+      #result {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header Section -->
+    <h1>Berechnung: Schneckendurchmesser &amp; Schließkraft</h1>
+    
+    <!-- Card for inputs -->
+    <div class="card">
+      <h2>Eingabedaten</h2>
+      
+      <div class="form-group">
+        <label for="shotWeight">Schussgewicht (g):</label>
+        <input type="text" id="shotWeight" placeholder="z.B. 100.0" />
+      </div>
+
+      <div class="form-group">
+        <label for="materialSelect">Material (Dichte):</label>
+        <select id="materialSelect">
+          <option value="">Material auswählen</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="width">Projizierte Breite (cm):</label>
+        <input type="text" id="width" placeholder="z.B. 20.0" />
+      </div>
+
+      <div class="form-group">
+        <label for="height">Projizierte Höhe (cm):</label>
+        <input type="text" id="height" placeholder="z.B. 15.0" />
+      </div>
+
+      <div class="button-row">
+        <button class="btn-calculate" id="calculateBtn">Berechnen</button>
+        <button class="btn-reset" id="resetBtn">Zurücksetzen</button>
+      </div>
+    </div>
+
+    <!-- Card for displaying results -->
+    <div class="card">
+      <h2>Ergebnisse</h2>
+      <div id="result">Ergebnisse werden hier angezeigt</div>
+    </div>
+  </div>
+
+  <!-- JavaScript logic -->
+  <script>
+    let materials = {};
+
+    /**
+     * Load the materials (density) from a JSON file (similar to the Kivy approach).
+     * Make sure 'densities.json' has a structure like:
+     * {
+     *   "Material1": 1.05,
+     *   "PA6": 1.14,
+     *   "PP": 0.92
+     * }
+     */
+    async function loadMaterials() {
+      try {
+        const response = await fetch('densities.json');
+        materials = await response.json();
+        populateMaterialDropdown();
+      } catch (error) {
+        console.error("Fehler beim Laden von densities.json:", error);
+        document.getElementById("materialSelect").innerHTML = "<option>Fehler beim Laden</option>";
+      }
+    }
+
+    // Populate <select> with materials
+    function populateMaterialDropdown() {
+      const selectElem = document.getElementById('materialSelect');
+      selectElem.innerHTML = ""; // Clear existing entries
+
+      // Refill with loaded materials
+      for (const [matName, density] of Object.entries(materials)) {
+        const option = document.createElement('option');
+        option.value = matName;
+        // Show user "MaterialName (density g/cm³)"
+        option.text = `${matName} (${density.toFixed(2)} g/cm³)`;
+        selectElem.appendChild(option);
+      }
+
+      // Optionally select the first item by default
+      if (selectElem.options.length > 0) {
+        selectElem.selectedIndex = 0;
+      }
+    }
+
+    // Calculation logic, mirroring the Python code
+    function calculate() {
+      const shotWeightInput = document.getElementById('shotWeight').value.trim();
+      const materialName = document.getElementById('materialSelect').value;
+      const widthInput = document.getElementById('width').value.trim();
+      const heightInput = document.getElementById('height').value.trim();
+      const resultDiv = document.getElementById('result');
+
+      // 1) Validate shot weight
+      const shotWeight = parseFloat(shotWeightInput);
+      if (isNaN(shotWeight)) {
+        resultDiv.innerHTML = "Fehler: Bitte geben Sie ein gültiges Schussgewicht ein.";
+        resultDiv.style.color = "red";
+        return;
+      }
+
+      // 2) Check if we have valid width & height
+      let hasArea = false;
+      let widthVal, heightVal;
+      if (widthInput && heightInput) {
+        widthVal = parseFloat(widthInput);
+        heightVal = parseFloat(heightInput);
+        if (isNaN(widthVal) || isNaN(heightVal)) {
+          resultDiv.innerHTML = "Fehler: Bitte geben Sie gültige Werte für Breite und Höhe ein.";
+          resultDiv.style.color = "red";
+          return;
+        }
+        hasArea = true;
+      }
+
+      // 3) Extract density
+      const density = materials[materialName];
+      if (!density) {
+        resultDiv.innerHTML = "Fehler: Ausgewähltes Material nicht gefunden.";
+        resultDiv.style.color = "red";
+        return;
+      }
+
+      // 4) Calculate volume [cm³] = shotWeight (g) / density (g/cm³)
+      const volume = shotWeight / density;
+
+      // 5) Calculate Schneckendurchmesser
+      //    d = (4*volume / (Math.PI*k))^(1/3)   (with k=2.5)
+      const k = 2.5;
+      const d = Math.pow((4 * volume) / (Math.PI * k), 1 / 3);
+      const diameter_cm = d;
+      const diameter_mm = d * 10;
+
+      // Build the result text
+      let resultText = "";
+      resultText += `Dosiervolumen: ${volume.toFixed(2)} cm³\n`;
+      resultText += `Schneckendurchmesser: ${diameter_cm.toFixed(2)} cm (${diameter_mm.toFixed(0)} mm)\n`;
+      resultText += `Schussgewicht: ${shotWeight.toFixed(1)} g`;
+
+      // 6) If area was provided, calculate projected area and clamping force
+      if (hasArea) {
+        const projectedArea = widthVal * heightVal; // cm²
+        const standardArea = 100; // cm²
+        // "Schließkraft" example from the Python code:
+        const clampingForceTon = (shotWeight / 10) * (standardArea / projectedArea);
+
+        resultText += `\nProjizierte Fläche: ${projectedArea.toFixed(2)} cm²`;
+        resultText += `\nEmpfohlene Schließkraft: ${clampingForceTon.toFixed(1)} t`;
+      } else {
+        resultText += `\nHinweis: Projizierte Fläche und Schließkraft wurden nicht berechnet, da keine Fläche eingegeben wurde.`;
+      }
+
+      // Display results
+      resultDiv.style.color = "#000000"; // Reset color in case of previous error
+      resultDiv.textContent = resultText; // Show text (with line breaks)
+    }
+
+    // Reset all fields and results
+    function resetFields() {
+      document.getElementById('shotWeight').value = "";
+      document.getElementById('width').value = "";
+      document.getElementById('height').value = "";
+      document.getElementById('result').textContent = "Ergebnisse werden hier angezeigt";
+      document.getElementById('result').style.color = "#000000";
+
+      // Reset to the first material, if any
+      const selectElem = document.getElementById('materialSelect');
+      if (selectElem.options.length > 0) {
+        selectElem.selectedIndex = 0;
+      }
+    }
+
+    // Hook up buttons
+    document.getElementById('calculateBtn').addEventListener('click', calculate);
+    document.getElementById('resetBtn').addEventListener('click', resetFields);
+
+    // Load densities on page load
+    window.addEventListener('DOMContentLoaded', loadMaterials);
+  </script>
+</body>
+</html>
